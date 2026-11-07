@@ -1,22 +1,30 @@
 import 'dart:async';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tiny_court/utils/error_utils.dart';
 
 import 'data/repository.dart';
 import 'env/environment.dart';
+import 'provider/app_providers.dart';
 import 'ui.dart';
-import 'view_model/app_view_model.dart';
 import 'views/navigation/app_routes.dart';
 import 'views/widgets/app_theme.dart';
 
-Future<void> app(Environment env) async {
+/// Boots the application for a given [Environment] (pogo_alarm standard).
+Future<void> bootstrapApp({required Environment environment}) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   await runZonedGuarded<Future<void>>(
     () async {
-      final AppRepository repo = AppRepository(env);
+      final AppRepository repo = AppRepository(environment);
+      await repo.init();
+
       runApp(
-        AppProvider(
-          repo: repo,
-          child: const Application(),
+        ProviderScope(
+          overrides: [
+            appRepositoryProvider.overrideWithValue(repo),
+          ],
+          child: const TinyCourtApp(),
         ),
       );
     },
@@ -26,29 +34,34 @@ Future<void> app(Environment env) async {
   );
 }
 
-class Application extends StatefulWidget {
-  const Application({super.key});
+/// Backwards-compatible `app(env)` runner.
+Future<void> app(Environment env) => bootstrapApp(environment: env);
+
+/// Root application widget configuring theme, localization, and GoRouter.
+class TinyCourtApp extends ConsumerStatefulWidget {
+  const TinyCourtApp({super.key});
 
   @override
-  State<Application> createState() => _ApplicationState();
+  ConsumerState<TinyCourtApp> createState() => _TinyCourtAppState();
 }
 
-class _ApplicationState extends State<Application> {
-  late RouterConfig<Object> router;
+class _TinyCourtAppState extends ConsumerState<TinyCourtApp> {
+  late final RouterConfig<Object> _router;
 
   @override
   void initState() {
     super.initState();
-    router = appRouter();
+    _router = appRouter();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Application',
+      title: 'Tiny Court',
+      debugShowCheckedModeBanner: false,
       darkTheme: getTheme(isDarkMode: true),
       theme: getTheme(),
-      routerConfig: router,
+      routerConfig: _router,
       locale: AppStringsDelegate.english,
       supportedLocales: AppStringsDelegate.appSupportedLocales,
       localizationsDelegates: AppStringsDelegate.delegates,

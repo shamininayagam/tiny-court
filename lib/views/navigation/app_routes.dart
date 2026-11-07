@@ -1,116 +1,107 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../ui.dart' hide RouterUtils;
-import '../home_page.dart';
-import '../profile_page.dart';
-import '../terms_page.dart';
+import '../cases/case_details_screen.dart';
+import '../cases/create_case_screen.dart';
+import '../cases/review_case_screen.dart';
+import '../courtroom/courtroom_screen.dart';
+import '../verdict/verdict_details_screen.dart';
+import 'main_navigation_screen.dart';
 
 part 'app_routes.g.dart';
 
 RouterConfig<Object> appRouter() {
   return GoRouter(
+    initialLocation: '/',
     routes: $appRoutes,
-    redirect: (BuildContext c, GoRouterState s) {
-      return null;
-    },
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
   );
 }
 
-extension RouteUtil on String {
-  String withFrom(String? redirect) {
-    final String r = redirect != null ? '?from=$redirect' : '';
-    return '$this$r';
-  }
-}
-
+/// Base class for all route data in Tiny Court.
 abstract class AppRouterData extends GoRouteData {
   const AppRouterData();
 
-  @override
-  FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
-    if (this is UnauthenticatedRouteData) {
-      return null;
-    }
-    if (this is AuthenticatedRouteData) {
-      if (context.appViewModel.getState().count == null) {
-        return null;
-      }
-    }
-    return null;
-  }
+  Widget buildWidget(BuildContext context, GoRouterState state);
 
   @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return buildWidget(context, state);
-  }
-
-  Widget buildWidget(BuildContext context, GoRouterState state) {
-    throw UnimplementedError('Implement buildWidget');
-  }
+  Widget build(BuildContext context, GoRouterState state) =>
+      buildWidget(context, state);
 }
 
-mixin DesktopContainerMixin on AppRouterData {
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return buildWidget(context, state);
-  }
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) {
-    // if(context.isDesktop) return DesktopContainer();
-    return super.buildPage(context, state);
-  }
-}
-
-abstract class AuthenticatedRouteData extends AppRouterData {
-  const AuthenticatedRouteData();
-}
-
-abstract class UnauthenticatedRouteData extends AppRouterData {
-  const UnauthenticatedRouteData();
-}
-
-/// Home Page
-@TypedGoRoute<HomePageRoute>(
+/// Root route hosting the bottom navigation IndexedStack tabs.
+@TypedGoRoute<MainNavigationRoute>(
   path: '/',
   routes: <TypedRoute<RouteData>>[
-    TypedGoRoute<ProfilePageRoute>(
-      path: 'profile/:id',
-    ),
-    TypedGoRoute<TermsPageRoute>(
-      path: 'terms',
-    ),
+    TypedGoRoute<CreateCaseRoute>(path: 'cases/create'),
+    TypedGoRoute<ReviewCaseRoute>(path: 'cases/:id/review'),
+    TypedGoRoute<CourtroomRoute>(path: 'courtroom/:id'),
+    TypedGoRoute<VerdictDetailsRoute>(path: 'verdict/:id'),
+    TypedGoRoute<CaseDetailsRoute>(path: 'cases/:id'),
   ],
 )
-@immutable
-class HomePageRoute extends AuthenticatedRouteData with $HomePageRoute {
+class MainNavigationRoute extends AppRouterData with $MainNavigationRoute {
+  const MainNavigationRoute();
+
   @override
-  Widget buildWidget(BuildContext context, GoRouterState state) {
-    return const HomePage();
-  }
+  Widget buildWidget(BuildContext context, GoRouterState state) =>
+      const MainNavigationScreen();
 }
 
-@immutable
-class ProfilePageRoute extends AuthenticatedRouteData with $ProfilePageRoute {
-  const ProfilePageRoute({
-    required this.id,
-  });
+/// Wizard screen for creating a new petty dispute case.
+class CreateCaseRoute extends AppRouterData with $CreateCaseRoute {
+  const CreateCaseRoute({this.templateId});
 
-  final int id;
+  final String? templateId;
 
   @override
-  Widget buildWidget(BuildContext context, GoRouterState state) {
-    return const ProfilePage();
-  }
+  Widget buildWidget(BuildContext context, GoRouterState state) =>
+      CreateCaseScreen(templateId: templateId);
 }
 
-@immutable
-class TermsPageRoute extends UnauthenticatedRouteData with $TermsPageRoute {
+/// Docket review screen before submitting to courtroom.
+class ReviewCaseRoute extends AppRouterData with $ReviewCaseRoute {
+  const ReviewCaseRoute({required this.id});
+
+  final String id;
+
   @override
-  Widget buildWidget(BuildContext context, GoRouterState state) {
-    return const TermsPage();
-  }
+  Widget buildWidget(BuildContext context, GoRouterState state) =>
+      ReviewCaseScreen(caseId: id);
+}
+
+/// Fullscreen animated Courtroom trial experience.
+class CourtroomRoute extends AppRouterData with $CourtroomRoute {
+  const CourtroomRoute({required this.id});
+
+  final String id;
+
+  @override
+  Widget buildWidget(BuildContext context, GoRouterState state) =>
+      CourtroomScreen(caseId: id);
+}
+
+/// Fullscreen Verdict decree, comedic punishments, and share sheet.
+class VerdictDetailsRoute extends AppRouterData with $VerdictDetailsRoute {
+  const VerdictDetailsRoute({required this.id});
+
+  final String id;
+
+  @override
+  Widget buildWidget(BuildContext context, GoRouterState state) =>
+      VerdictDetailsScreen(caseId: id);
+}
+
+/// Read-only case details view.
+class CaseDetailsRoute extends AppRouterData with $CaseDetailsRoute {
+  const CaseDetailsRoute({required this.id});
+
+  final String id;
+
+  @override
+  Widget buildWidget(BuildContext context, GoRouterState state) =>
+      CaseDetailsScreen(caseId: id);
 }

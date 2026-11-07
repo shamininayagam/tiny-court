@@ -68,6 +68,8 @@ abstract class AppStrings {
   String get courtroomDialogueDeliberation;
   String courtroomDialogueVerdict(dynamic caseTitle);
   String get courtroomDialogueAdjourned;
+  String get courtroomViewVerdict;
+  String get courtroomTapGavelPrompt;
   String get verdictStampGuilty;
   String get verdictStampNotGuilty;
   String get verdictStampMutualBlame;
@@ -77,6 +79,15 @@ abstract class AppStrings {
   String get verdictExplanationTitle;
   String get verdictClosingRemarkTitle;
   String get verdictShareWatermark;
+  String get verdictReturnHome;
+  String get verdictCopied;
+  String get caseDetailsTitle;
+  String get caseDetailsCategory;
+  String get caseDetailsStatus;
+  String get caseDetailsFiledOn;
+  String get caseDetailsVerdictTitle;
+  String get caseDetailsViewVerdict;
+  String get caseDetailsEnterCourt;
   String get historyTitle;
   String get historySearchHint;
   String get historyFilterAll;

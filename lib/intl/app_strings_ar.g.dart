@@ -486,6 +486,16 @@ class AppStringsAR extends AppStrings {
   }
 
   @override
+  String get courtroomViewVerdict {
+    return "View Official Decree";
+  }
+
+  @override
+  String get courtroomTapGavelPrompt {
+    return "Tap the gavel to call order";
+  }
+
+  @override
   String get verdictStampGuilty {
     return "GUILTY";
   }
@@ -528,6 +538,51 @@ class AppStringsAR extends AppStrings {
   @override
   String get verdictShareWatermark {
     return "Delivered by Tiny Court — Rule of Law, But Silly";
+  }
+
+  @override
+  String get verdictReturnHome {
+    return "Return to Court";
+  }
+
+  @override
+  String get verdictCopied {
+    return "Verdict copied to clipboard!";
+  }
+
+  @override
+  String get caseDetailsTitle {
+    return "Case Dossier";
+  }
+
+  @override
+  String get caseDetailsCategory {
+    return "Category";
+  }
+
+  @override
+  String get caseDetailsStatus {
+    return "Status";
+  }
+
+  @override
+  String get caseDetailsFiledOn {
+    return "Filed On";
+  }
+
+  @override
+  String get caseDetailsVerdictTitle {
+    return "Verdict Summary";
+  }
+
+  @override
+  String get caseDetailsViewVerdict {
+    return "View Full Verdict";
+  }
+
+  @override
+  String get caseDetailsEnterCourt {
+    return "Proceed to Trial";
   }
 
   @override

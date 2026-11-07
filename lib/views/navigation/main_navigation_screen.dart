@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
+import '../../ui.dart';
 import '../cases/my_cases_tab.dart';
 import '../home/home_tab.dart';
 import '../settings/settings_tab.dart';
@@ -23,6 +22,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final strings = context.strings;
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -30,24 +32,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
+        backgroundColor: colors.surface1,
+        indicatorColor: colors.gavelGold.withValues(alpha: 0.25),
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.gavel_outlined),
-            selectedIcon: Icon(Icons.gavel),
-            label: 'Home',
+            icon: Icon(Icons.gavel_outlined, color: colors.text2),
+            selectedIcon: Icon(Icons.gavel, color: colors.gavelGold),
+            label: strings.tabHome,
           ),
           NavigationDestination(
-            icon: Icon(Icons.folder_outlined),
-            selectedIcon: Icon(Icons.folder),
-            label: 'My Cases',
+            icon: Icon(Icons.folder_outlined, color: colors.text2),
+            selectedIcon: Icon(Icons.folder, color: colors.gavelGold),
+            label: strings.tabCases,
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.settings_outlined, color: colors.text2),
+            selectedIcon: Icon(Icons.settings, color: colors.gavelGold),
+            label: strings.tabSettings,
           ),
         ],
       ),
