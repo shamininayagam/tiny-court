@@ -4,7 +4,6 @@ import 'package:tiny_court/utils/error_utils.dart';
 
 import 'data/repository.dart';
 import 'env/environment.dart';
-import 'intl/i18n.dart';
 import 'ui.dart';
 import 'view_model/app_view_model.dart';
 import 'views/navigation/app_routes.dart';

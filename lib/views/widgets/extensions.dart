@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:recase/recase.dart';
 
 import '../../intl/i18n.dart';
+import '../../ui/tokens/app_colors.dart';
 import 'app_theme.dart';
 
 extension StringUtils on String {
@@ -145,6 +146,8 @@ extension BuildContextUtils on BuildContext {
   IconThemeData get iconTheme => IconTheme.of(this);
 
   AppStrings get strings => AppLocalizations.of(this);
+
+  AppColors get colors => isDarkTheme ? const AppDarkColors() : const AppLightColors();
 
   ModalRoute<T>? getModalRoute<T>() => ModalRoute.of<T>(this);
 
