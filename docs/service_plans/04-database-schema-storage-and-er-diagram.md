@@ -61,7 +61,6 @@ erDiagram
     app_settings {
         boolean soundEnabled "Toggle SFX"
         boolean hapticsEnabled "Toggle haptic feedback"
-        boolean animationsEnabled "Toggle rich animations"
         string themePreference "ThemeMode (light, dark, system)"
     }
 ```
