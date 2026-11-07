@@ -86,7 +86,7 @@ abstract class UnauthenticatedRouteData extends AppRouterData {
   ],
 )
 @immutable
-class HomePageRoute extends AuthenticatedRouteData {
+class HomePageRoute extends AuthenticatedRouteData with $HomePageRoute {
   @override
   Widget buildWidget(BuildContext context, GoRouterState state) {
     return const HomePage();
@@ -94,7 +94,7 @@ class HomePageRoute extends AuthenticatedRouteData {
 }
 
 @immutable
-class ProfilePageRoute extends AuthenticatedRouteData {
+class ProfilePageRoute extends AuthenticatedRouteData with $ProfilePageRoute {
   const ProfilePageRoute({
     required this.id,
   });
@@ -108,7 +108,7 @@ class ProfilePageRoute extends AuthenticatedRouteData {
 }
 
 @immutable
-class TermsPageRoute extends UnauthenticatedRouteData {
+class TermsPageRoute extends UnauthenticatedRouteData with $TermsPageRoute {
   @override
   Widget buildWidget(BuildContext context, GoRouterState state) {
     return const TermsPage();

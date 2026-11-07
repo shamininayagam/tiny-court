@@ -6,7 +6,7 @@ part of 'api_error.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<ApiError> _$apiErrorSerializer = new _$ApiErrorSerializer();
+Serializer<ApiError> _$apiErrorSerializer = _$ApiErrorSerializer();
 
 class _$ApiErrorSerializer implements StructuredSerializer<ApiError> {
   @override
@@ -15,24 +15,31 @@ class _$ApiErrorSerializer implements StructuredSerializer<ApiError> {
   final String wireName = 'ApiError';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, ApiError object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ApiError object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[];
     Object? value;
     value = object.message;
     if (value != null) {
       result
         ..add('message')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     return result;
   }
 
   @override
-  ApiError deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ApiErrorBuilder();
+  ApiError deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ApiErrorBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -41,8 +48,10 @@ class _$ApiErrorSerializer implements StructuredSerializer<ApiError> {
       final Object? value = iterator.current;
       switch (key) {
         case 'message':
-          result.message = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.message = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String?;
           break;
       }
     }
@@ -56,16 +65,15 @@ class _$ApiError extends ApiError {
   final String? message;
 
   factory _$ApiError([void Function(ApiErrorBuilder)? updates]) =>
-      (new ApiErrorBuilder()..update(updates))._build();
+      (ApiErrorBuilder()..update(updates))._build();
 
   _$ApiError._({this.message}) : super._();
-
   @override
   ApiError rebuild(void Function(ApiErrorBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ApiErrorBuilder toBuilder() => new ApiErrorBuilder()..replace(this);
+  ApiErrorBuilder toBuilder() => ApiErrorBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -83,8 +91,9 @@ class _$ApiError extends ApiError {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'ApiError')..add('message', message))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'ApiError',
+    )..add('message', message)).toString();
   }
 }
 
@@ -108,7 +117,6 @@ class ApiErrorBuilder implements Builder<ApiError, ApiErrorBuilder> {
 
   @override
   void replace(ApiError other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ApiError;
   }
 
@@ -121,7 +129,7 @@ class ApiErrorBuilder implements Builder<ApiError, ApiErrorBuilder> {
   ApiError build() => _build();
 
   _$ApiError _build() {
-    final _$result = _$v ?? new _$ApiError._(message: message);
+    final _$result = _$v ?? _$ApiError._(message: message);
     replace(_$result);
     return _$result;
   }
