@@ -9,6 +9,9 @@ import 'case.dart';
 import 'enums/case_category.dart';
 import 'enums/case_status.dart';
 import 'enums/verdict_type.dart';
+import 'states/case_draft_state.dart';
+import 'states/case_history_state.dart';
+import 'states/courtroom_state.dart';
 import 'suggested_case.dart';
 import 'verdict.dart';
 
@@ -24,6 +27,11 @@ part 'serializers.g.dart';
   Verdict,
   SuggestedCase,
   AppSettings,
+  DraftStep,
+  CaseDraftState,
+  CourtroomStage,
+  CourtroomState,
+  CaseHistoryState,
 ])
 final Serializers serializers =
     (_$serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();

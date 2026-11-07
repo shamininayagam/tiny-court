@@ -1,7 +1,6 @@
 import '../env/environment.dart';
 import '../keys/app_keys.dart';
 import '../shared.dart';
-import 'alert_utils.dart';
 import 'app_icons.dart';
 
 extension Env on Object {
