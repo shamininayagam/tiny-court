@@ -1,7 +1,7 @@
 import '../env/environment.dart';
 import '../keys/app_keys.dart';
 import '../shared.dart';
-import 'alert_utils.dart';
+import '../ui/tokens/app_colors.dart';
 import 'app_icons.dart';
 
 extension Env on Object {
@@ -16,11 +16,6 @@ class _AppAssets extends AppAssets {
 // ignore: avoid_classes_with_only_static_members
 class _AppConstants extends AppConstants {
   static final _AppConstants instance = _AppConstants();
-}
-
-// ignore: avoid_classes_with_only_static_members
-class _AppColors extends AppColors {
-  static final _AppColors instance = _AppColors();
 }
 
 // ignore: avoid_classes_with_only_static_members
@@ -42,7 +37,7 @@ extension ObjectUtils on Object {
 
   AppConstants get constants => _AppConstants.instance;
 
-  AppColors get colors => _AppColors.instance;
+  AppColors get colors => const AppDarkColors();
 
   AppIcons get icons => _AppIcons.instance;
 

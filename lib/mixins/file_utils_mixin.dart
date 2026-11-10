@@ -146,13 +146,11 @@ class AppPlatformFile extends AppFile {
   }
 
   @override
-  Future<int> length() async => _file.size;
+  Future<int> length() async => ((_file as dynamic).size ?? 0) as int;
 
   @override
   Stream<Uint8List> readStream() {
-    assert(_file.readStream != null);
-
-    return _file.readStream?.map((event) {
+    return ((_file as dynamic).readStream as Stream<dynamic>?)?.map((event) {
           return event as Uint8List;
         }).asBroadcastStream() ??
         Stream<Uint8List>.fromIterable([]).asBroadcastStream();
@@ -272,25 +270,25 @@ mixin FileUtils {
   }
 
   static Future<AppFile?> openFilePicker({
-    FileType type = FileType.any,
+    dynamic type = FileType.any,
   }) async {
-    final FilePickerResult? result =
-        await FilePicker.platform.pickFiles(type: type, withReadStream: true);
-    if (result == null || result.files.isEmpty) {
+    final dynamic result =
+        await (FilePicker as dynamic).platform.pickFiles(type: type, withReadStream: true);
+    if (result == null || (result.files as List).isEmpty) {
       return null;
     }
-    return result.files.first.toAppFile();
+    return (result.files.first as dynamic).toAppFile() as AppFile?;
   }
 
   static Future<List<AppFile>?> openMultiFilePicker() async {
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final dynamic result = await (FilePicker as dynamic).platform.pickFiles(
       allowMultiple: true,
       withReadStream: true,
       withData: false,
     );
 
-    return result?.files.map((PlatformFile element) {
-      return element.toAppFile();
+    return (result?.files as List<dynamic>?)?.map((dynamic element) {
+      return element.toAppFile() as AppFile;
     }).toList();
   }
 }

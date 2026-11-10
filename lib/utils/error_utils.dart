@@ -5,6 +5,6 @@ mixin AppErrorUtils {
     Object error, [
     StackTrace? stackTrace,
   ]) async {
-    0.log.error(error, stackTrace);
+    0.log.error('Unhandled error: $error', error: error, stackTrace: stackTrace);
   }
 }

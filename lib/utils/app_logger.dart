@@ -1,79 +1,73 @@
-import 'package:flutter/cupertino.dart';
-import 'package:logger/logger.dart';
-import 'package:stack_trace/stack_trace.dart';
+import 'package:flutter/foundation.dart';
 
-class _AppPrinter extends PrettyPrinter {
-  _AppPrinter()
-      : super(
-          stackTraceBeginIndex: 1,
-          methodCount: 2,
-          errorMethodCount: 8,
-          lineLength: 80,
-          colors: true,
-          printEmojis: true,
-          dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
-          excludeBox: const <Level, bool>{},
-          noBoxingByDefault: true,
-        ) {
-    PrettyPrinter.defaultLevelEmojis[Level.trace] = '🔊 ';
+/// Central logging facade matching the pogo_alarm architecture.
+///
+/// Obtain one instance per class through the static [get] factory and store
+/// it in a `_log` field:
+/// ```dart
+/// static final AppLogger _log = AppLogger.get('CaseDraftMixin');
+/// ```
+base class AppLogger {
+  /// Tag prefix printed with every message — conventionally the class or mixin name.
+  final String _tag;
+
+  /// Private constructor; create loggers via the [get] factory.
+  const AppLogger._(this._tag);
+
+  /// Returns a logger tagged with [tag], conventionally the class or mixin name.
+  static AppLogger get(String tag) => AppLogger._(tag);
+
+  /// Verbose-level message; only emitted in debug builds.
+  void verbose(String message) => _log('VERBOSE', message);
+
+  /// Debug-level message; only emitted in debug builds.
+  void debug(String message) => _log('DEBUG', message);
+
+  /// Informational message, emitted in all builds.
+  void info(String message) => _log('INFO', message);
+
+  /// Warning message, emitted in all builds.
+  void warning(String message) => _log('WARNING', message);
+
+  /// Error message with the accompanying [error]; emitted in all builds.
+  void error(String message, {Object? error, StackTrace? stackTrace}) {
+    _log('ERROR', message);
+    if (error != null) {
+      debugPrint('[$_tag] ERROR details: $error');
+    }
+    if (stackTrace != null) {
+      debugPrint('[$_tag] ERROR stack:\n$stackTrace');
+    }
   }
 
-  @override
-  String getTime(DateTime time) {
-    return '${time.day}/${time.month}/${time.year} ${super.getTime(time)}';
+  /// Fatal message with the accompanying [error]; emitted in all builds.
+  void fatal(String message, {Object? error, StackTrace? stackTrace}) {
+    _log('FATAL', message);
+    if (error != null) {
+      debugPrint('[$_tag] FATAL details: $error');
+    }
+    if (stackTrace != null) {
+      debugPrint('[$_tag] FATAL stack:\n$stackTrace');
+    }
   }
 
-  @override
-  String stringifyMessage(event) {
-    final String seperator = '=' * 70;
-    return <String>[seperator, super.stringifyMessage(event), seperator]
-        .join('\n');
+  void _log(String level, String message) {
+    if (!kDebugMode && (level == 'VERBOSE' || level == 'DEBUG')) {
+      return;
+    }
+    debugPrint('[$_tag] $level: $message');
   }
+
+  // ── Backward-compatibility with legacy logger calls ────────────────────────
+  void d(dynamic message) => debug('$message');
+  void i(dynamic message) => info('$message');
+  void e(dynamic message) => error('$message');
+  void v(dynamic message) => verbose('$message');
+  void w(dynamic message) => warning('$message');
 }
 
-class _AppOutput extends LogOutput {
-  @override
-  void output(OutputEvent event) {
-    event.lines.forEach(debugPrint);
-  }
-}
-
-abstract class AppLogger {
-  final Logger _log = Logger(
-    printer: _AppPrinter(),
-    output: _AppOutput(),
-  );
-
-  void error(Object error, [StackTrace? s]) {
-    e('''
-Error: $error
-
-Stacktrace: $s
-''');
-  }
-
-  void startMethod() {
-    final String? member = Trace.current().frames[1].member;
-    v('Method Start -> $member');
-  }
-
-  void endMethod() {
-    final String? member = Trace.current().frames[1].member;
-    v('Method End -> $member');
-  }
-
-  void d(dynamic message) => _log.d(message);
-
-  void i(dynamic message) => _log.i(message);
-
-  void e(dynamic message) => _log.e(message);
-
-  void v(dynamic message) => _log.t(message);
-
-  void w(dynamic message) => _log.w(message);
-}
-
-class _AppLogger extends AppLogger {
+final class _AppLogger extends AppLogger {
+  _AppLogger() : super._('App');
   static final _AppLogger _logger = _AppLogger();
 }
 

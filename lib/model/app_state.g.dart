@@ -6,7 +6,7 @@ part of 'app_state.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<AppState> _$appStateSerializer = new _$AppStateSerializer();
+Serializer<AppState> _$appStateSerializer = _$AppStateSerializer();
 
 class _$AppStateSerializer implements StructuredSerializer<AppState> {
   @override
@@ -15,8 +15,11 @@ class _$AppStateSerializer implements StructuredSerializer<AppState> {
   final String wireName = 'AppState';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, AppState object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    AppState object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[];
     Object? value;
     value = object.count;
@@ -29,9 +32,12 @@ class _$AppStateSerializer implements StructuredSerializer<AppState> {
   }
 
   @override
-  AppState deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new AppStateBuilder();
+  AppState deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = AppStateBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -40,8 +46,10 @@ class _$AppStateSerializer implements StructuredSerializer<AppState> {
       final Object? value = iterator.current;
       switch (key) {
         case 'count':
-          result.count = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.count = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int?;
           break;
       }
     }
@@ -55,16 +63,15 @@ class _$AppState extends AppState {
   final int? count;
 
   factory _$AppState([void Function(AppStateBuilder)? updates]) =>
-      (new AppStateBuilder()..update(updates))._build();
+      (AppStateBuilder()..update(updates))._build();
 
   _$AppState._({this.count}) : super._();
-
   @override
   AppState rebuild(void Function(AppStateBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  AppStateBuilder toBuilder() => new AppStateBuilder()..replace(this);
+  AppStateBuilder toBuilder() => AppStateBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -82,8 +89,9 @@ class _$AppState extends AppState {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'AppState')..add('count', count))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'AppState',
+    )..add('count', count)).toString();
   }
 }
 
@@ -109,7 +117,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
   @override
   void replace(AppState other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$AppState;
   }
 
@@ -122,7 +129,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   AppState build() => _build();
 
   _$AppState _build() {
-    final _$result = _$v ?? new _$AppState._(count: count);
+    final _$result = _$v ?? _$AppState._(count: count);
     replace(_$result);
     return _$result;
   }
