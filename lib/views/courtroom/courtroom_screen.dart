@@ -77,28 +77,50 @@ class CourtroomScreenState extends AppConsumerState<CourtroomScreen>
     final state = courtroomState;
 
     return Scaffold(
-      backgroundColor: colors.bg,
+      backgroundColor: const Color(0xFF201319), // Deep theatrical courtroom backdrop
       appBar: AppBar(
         title: AppText(
           state?.courtCase?.title ?? strings.appName,
           style: AppTextStyle.titleMedium,
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
         ),
-        backgroundColor: colors.surface1,
+        backgroundColor: const Color(0xFF2B1822),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, color: Colors.white70),
           onPressed: _onClose,
         ),
         actions: [
           if (state != null &&
               state.currentStage != CourtroomStage.verdictReveal &&
               state.currentStage != CourtroomStage.adjourned)
-            TextButton(
-              onPressed: _onSkipToVerdict,
-              child: AppText(
-                strings.btnSkipToVerdict,
-                style: AppTextStyle.label,
-                color: colors.gavelGold,
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.base),
+              child: InkWell(
+                onTap: _onSkipToVerdict,
+                borderRadius: BorderRadius.circular(16.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16.0),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppText(
+                        strings.btnSkipToVerdict,
+                        style: AppTextStyle.caption,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      const SizedBox(width: 4.0),
+                      const Icon(Icons.fast_forward, size: 14.0, color: Colors.white),
+                    ],
+                  ),
+                ),
               ),
             ),
         ],
@@ -149,6 +171,7 @@ class _CourtroomErrorView extends StatelessWidget {
             AppText(
               message,
               style: AppTextStyle.bodyMedium,
+              color: Colors.white,
               align: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.l),
@@ -190,11 +213,13 @@ class _CourtroomTrialView extends StatelessWidget {
             padding: AppSpacing.screenGutter,
             child: Column(
               children: [
-                const SizedBox(height: AppSpacing.m),
-                _JudgeBenchSection(stage: state.currentStage),
+                const SizedBox(height: AppSpacing.s),
+                // Courtroom Podium / Bench Stage View
+                _CourtroomStageBench(
+                  stage: state.currentStage,
+                  dialogue: state.currentJudgeDialogue,
+                ),
                 const SizedBox(height: AppSpacing.base),
-                _JudgeDialogueBubble(dialogue: state.currentJudgeDialogue),
-                const SizedBox(height: AppSpacing.l),
                 if (state.courtCase != null)
                   _StageArgumentPresentation(
                     stage: state.currentStage,
@@ -250,10 +275,7 @@ class _CourtroomStageHeader extends StatelessWidget {
         horizontal: AppSpacing.base,
         vertical: AppSpacing.s,
       ),
-      decoration: BoxDecoration(
-        color: colors.surface1,
-        border: Border(bottom: BorderSide(color: colors.hairline)),
-      ),
+      color: const Color(0xFF2B1822),
       child: Column(
         children: [
           Row(
@@ -261,24 +283,25 @@ class _CourtroomStageHeader extends StatelessWidget {
             children: [
               AppText(
                 _getStageTitle(context),
-                style: AppTextStyle.label,
-                color: colors.gavelGold,
+                style: AppTextStyle.caption,
+                color: colors.accent,
+                fontWeight: FontWeight.w800,
               ),
               AppText(
                 '${stepIndex + 1} / $totalSteps',
                 style: AppTextStyle.caption,
-                color: colors.text2,
+                color: Colors.white70,
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
           ClipRRect(
-            borderRadius: AppRadius.smAll,
+            borderRadius: BorderRadius.circular(4.0),
             child: LinearProgressIndicator(
               value: (stepIndex + 1) / totalSteps,
-              backgroundColor: colors.surface3,
-              valueColor: AlwaysStoppedAnimation<Color>(colors.gavelGold),
-              minHeight: 4,
+              backgroundColor: Colors.white12,
+              valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
+              minHeight: 5,
             ),
           ),
         ],
@@ -287,12 +310,16 @@ class _CourtroomStageHeader extends StatelessWidget {
   }
 }
 
-class _JudgeBenchSection extends StatelessWidget {
-  const _JudgeBenchSection({required this.stage});
+class _CourtroomStageBench extends StatelessWidget {
+  const _CourtroomStageBench({
+    required this.stage,
+    required this.dialogue,
+  });
 
   final CourtroomStage stage;
+  final String dialogue;
 
-  JudgeExpression _getExpressionForStage() {
+  JudgeExpression _getExpression() {
     return switch (stage) {
       CourtroomStage.entrance ||
       CourtroomStage.judgeIntro =>
@@ -310,37 +337,167 @@ class _JudgeBenchSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return JudgeMascotView(
-      expression: _getExpressionForStage(),
-      size: 130,
-    );
-  }
-}
-
-class _JudgeDialogueBubble extends StatelessWidget {
-  const _JudgeDialogueBubble({required this.dialogue});
-
-  final String dialogue;
-
-  @override
-  Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return ParchmentCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.format_quote_rounded, size: 24, color: colors.gavelGold),
-          const SizedBox(width: AppSpacing.s),
-          Expanded(
-            child: AppText(
-              dialogue,
-              style: AppTextStyle.bodyLarge,
-              color: colors.text,
+    return Stack(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.l),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2C191E),
+            borderRadius: BorderRadius.circular(24.0),
+            border: Border.all(
+              color: colors.curtainRed.withValues(alpha: 0.5),
+              width: 2.0,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x3F000000),
+                blurRadius: 16.0,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Speech Bubble
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.0),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x22000000),
+                      blurRadius: 8.0,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: AppText(
+                  dialogue,
+                  style: AppTextStyle.bodyMedium,
+                  color: const Color(0xFF28231D),
+                  align: TextAlign.center,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.base),
+
+              // Cartoon Judge Mascot behind wooden podium
+              JudgeMascotView(
+                expression: _getExpression(),
+                size: 110.0,
+              ),
+              const SizedBox(height: AppSpacing.s),
+
+              // Golden Scales on Wooden Bench Front
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3E2219), // Wooden podium
+                  borderRadius: BorderRadius.circular(16.0),
+                  border: Border.all(color: colors.accent, width: 2.0),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4.0),
+                      decoration: BoxDecoration(
+                        color: colors.accent.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.balance, size: 18.0, color: colors.accent),
+                    ),
+                    const SizedBox(width: 8.0),
+                    AppText(
+                      'TINY COURT',
+                      style: AppTextStyle.caption,
+                      color: colors.accent,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.m),
+
+              // Audience Silhouette Heads at the bottom (Screen 5)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(5, (index) {
+                  final double headSize = (index == 2) ? 34.0 : (index.isOdd ? 28.0 : 30.0);
+                  final double shoulderWidth = headSize * 1.5;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: headSize,
+                        height: headSize,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF14080D),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      Container(
+                        width: shoulderWidth,
+                        height: 10.0,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF14080D),
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
+
+        // Left Red Velvet Draped Curtain Accent
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 20.0,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colors.curtainRed,
+                  colors.curtainRed.withValues(alpha: 0.1),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(24.0)),
             ),
           ),
-        ],
-      ),
+        ),
+
+        // Right Red Velvet Draped Curtain Accent
+        Positioned(
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: 20.0,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colors.curtainRed.withValues(alpha: 0.1),
+                  colors.curtainRed,
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: const BorderRadius.horizontal(right: Radius.circular(24.0)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -383,24 +540,24 @@ class _CourtroomBottomControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final strings = context.strings;
 
     return Container(
       padding: AppSpacing.screenGutter,
-      decoration: BoxDecoration(
-        color: colors.surface1,
-        border: Border(top: BorderSide(color: colors.hairline)),
+      decoration: const BoxDecoration(
+        color: Color(0xFF2B1822),
       ),
       child: isVerdictReady
           ? AppButton(
               label: strings.courtroomViewVerdict,
+              isFullWidth: true,
               variant: AppButtonVariant.primaryGold,
               onPressed: onViewVerdict,
             )
           : AppButton(
               label: strings.btnSkipToVerdict,
-              variant: AppButtonVariant.parchmentSecondary,
+              isFullWidth: true,
+              variant: AppButtonVariant.royalIndigo,
               onPressed: onSkipToVerdict,
             ),
     );

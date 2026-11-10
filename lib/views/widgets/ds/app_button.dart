@@ -8,6 +8,7 @@ import 'app_text.dart';
 
 enum AppButtonVariant {
   primaryGold,
+  royalIndigo,
   parchmentSecondary,
   dangerRed,
   ghost,
@@ -38,40 +39,57 @@ class AppButton extends StatelessWidget {
     final bool isEnabled = onPressed != null && !isLoading;
 
     final Color backgroundColor = switch (variant) {
-      AppButtonVariant.primaryGold => isEnabled ? colors.gavelGold : colors.gavelGold.withValues(alpha: 0.4),
-      AppButtonVariant.parchmentSecondary => isEnabled ? colors.parchmentCream : colors.parchmentCream.withValues(alpha: 0.4),
-      AppButtonVariant.dangerRed => isEnabled ? colors.danger : colors.danger.withValues(alpha: 0.4),
+      AppButtonVariant.royalIndigo => isEnabled
+          ? colors.royalIndigo
+          : colors.royalIndigo.withValues(alpha: 0.4),
+      AppButtonVariant.primaryGold => isEnabled
+          ? colors.honeyGold
+          : colors.honeyGold.withValues(alpha: 0.4),
+      AppButtonVariant.parchmentSecondary => isEnabled
+          ? colors.surface2
+          : colors.surface2.withValues(alpha: 0.4),
+      AppButtonVariant.dangerRed => isEnabled
+          ? colors.danger
+          : colors.danger.withValues(alpha: 0.4),
       AppButtonVariant.ghost => Colors.transparent,
     };
 
     final Color foregroundColor = switch (variant) {
+      AppButtonVariant.royalIndigo => Colors.white,
       AppButtonVariant.primaryGold => colors.inkBlack,
-      AppButtonVariant.parchmentSecondary => colors.inkBlack,
+      AppButtonVariant.parchmentSecondary => colors.text,
       AppButtonVariant.dangerRed => Colors.white,
       AppButtonVariant.ghost => colors.accent,
     };
 
     final Border? border = switch (variant) {
       AppButtonVariant.parchmentSecondary => Border.all(
-          color: colors.parchmentBorder,
-          width: AppSpacing.hairlineThickness * 1.5,
+          color: colors.hairline,
+          width: 1.5,
         ),
       _ => null,
     };
 
+    final BorderRadius borderRadius = switch (variant) {
+      AppButtonVariant.royalIndigo ||
+      AppButtonVariant.primaryGold =>
+        AppRadius.pillAll,
+      _ => AppRadius.mdAll,
+    };
+
     final List<BoxShadow>? shadows = switch (variant) {
-      AppButtonVariant.primaryGold when isEnabled => const [
+      AppButtonVariant.royalIndigo when isEnabled => [
           BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 8.0,
-            offset: Offset(0, 3),
+            color: colors.royalIndigo.withValues(alpha: 0.25),
+            blurRadius: 10.0,
+            offset: const Offset(0, 4),
           ),
         ],
-      AppButtonVariant.parchmentSecondary when isEnabled => const [
+      AppButtonVariant.primaryGold when isEnabled => [
           BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 6.0,
-            offset: Offset(0, 2),
+            color: colors.honeyGold.withValues(alpha: 0.3),
+            blurRadius: 8.0,
+            offset: const Offset(0, 3),
           ),
         ],
       _ => null,
@@ -112,7 +130,7 @@ class AppButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: isEnabled ? onPressed : null,
-          borderRadius: AppRadius.mdAll,
+          borderRadius: borderRadius,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             width: isFullWidth ? double.infinity : null,
@@ -122,7 +140,7 @@ class AppButton extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: backgroundColor,
-              borderRadius: AppRadius.mdAll,
+              borderRadius: borderRadius,
               border: border,
               boxShadow: shadows,
             ),

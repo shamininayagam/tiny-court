@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../ui/tokens/app_radius.dart';
 import '../../../ui/tokens/app_spacing.dart';
 import '../../../ui/tokens/app_typography.dart';
 import '../extensions.dart';
 import 'app_text.dart';
-import 'legal_badge.dart';
 import 'parchment_card.dart';
 
-/// Duel card displaying plaintiff grievance side-by-side or stacked against defendant rebuttal.
+/// Duel card displaying plaintiff grievance vs defendant rebuttal with pastel character avatars.
 class ArgumentScrollCard extends StatelessWidget {
   const ArgumentScrollCard({
     super.key,
@@ -25,31 +25,35 @@ class ArgumentScrollCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final strings = context.strings;
 
     return ParchmentCard(
       padding: AppSpacing.p16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _PartyArgumentFlap(
-            badgeLabel: context.strings.reviewPlaintiffHeader,
+          _PartyDuelItem(
+            roleLabel: strings.reviewPlaintiffHeader,
             partyName: plaintiffName,
             argumentText: plaintiffArgument,
-            badgeColor: colors.accent,
-            badgeIcon: Icons.account_balance,
+            avatarBgColor: colors.plaintiffRose,
+            avatarIconColor: colors.plaintiffRed,
+            icon: Icons.person_outline,
           ),
-          const SizedBox(height: AppSpacing.m),
-          Divider(
-            height: AppSpacing.hairlineThickness,
-            color: colors.parchmentBorder,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.s3),
+            child: Divider(
+              height: 1.0,
+              color: colors.hairline,
+            ),
           ),
-          const SizedBox(height: AppSpacing.m),
-          _PartyArgumentFlap(
-            badgeLabel: context.strings.reviewDefendantHeader,
+          _PartyDuelItem(
+            roleLabel: strings.reviewDefendantHeader,
             partyName: defendantName,
             argumentText: defendantArgument,
-            badgeColor: colors.info,
-            badgeIcon: Icons.shield,
+            avatarBgColor: colors.defendantPeriwinkle,
+            avatarIconColor: colors.defendantBlue,
+            icon: Icons.person,
           ),
         ],
       ),
@@ -57,61 +61,93 @@ class ArgumentScrollCard extends StatelessWidget {
   }
 }
 
-class _PartyArgumentFlap extends StatelessWidget {
-  const _PartyArgumentFlap({
-    required this.badgeLabel,
+class _PartyDuelItem extends StatelessWidget {
+  const _PartyDuelItem({
+    required this.roleLabel,
     required this.partyName,
     required this.argumentText,
-    required this.badgeColor,
-    required this.badgeIcon,
+    required this.avatarBgColor,
+    required this.avatarIconColor,
+    required this.icon,
   });
 
-  final String badgeLabel;
+  final String roleLabel;
   final String partyName;
   final String argumentText;
-  final Color badgeColor;
-  final IconData badgeIcon;
+  final Color avatarBgColor;
+  final Color avatarIconColor;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            LegalBadge(
-              label: badgeLabel,
-              icon: badgeIcon,
-              color: badgeColor,
-            ),
-            const SizedBox(width: AppSpacing.s),
-            Expanded(
-              child: AppText(
-                partyName,
-                style: AppTextStyle.titleMedium,
-                color: colors.inkBlack,
-                fontWeight: FontWeight.w700,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s),
+        // Cute circular chibi avatar disc
         Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.s3),
+          width: 44.0,
+          height: 44.0,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(8.0),
+            color: avatarBgColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: avatarIconColor.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
           ),
-          child: AppText(
-            argumentText,
-            style: AppTextStyle.bodyMedium,
-            color: colors.inkBlack,
-            italic: true,
+          child: Icon(
+            icon,
+            size: 24.0,
+            color: avatarIconColor,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.m),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  AppText(
+                    roleLabel,
+                    style: AppTextStyle.caption,
+                    color: avatarIconColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  const SizedBox(width: AppSpacing.s),
+                  Expanded(
+                    child: AppText(
+                      partyName,
+                      style: AppTextStyle.titleMedium,
+                      color: colors.text,
+                      fontWeight: FontWeight.w700,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.m,
+                  vertical: AppSpacing.s,
+                ),
+                decoration: BoxDecoration(
+                  color: avatarBgColor.withValues(alpha: 0.5),
+                  borderRadius: AppRadius.smAll,
+                ),
+                child: AppText(
+                  argumentText,
+                  style: AppTextStyle.bodyMedium,
+                  color: colors.text,
+                  italic: true,
+                ),
+              ),
+            ],
           ),
         ),
       ],

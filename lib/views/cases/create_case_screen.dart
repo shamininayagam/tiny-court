@@ -152,11 +152,29 @@ class CreateCaseScreenState extends AppConsumerState<CreateCaseScreen>
                       contextController: _contextController,
                       selectedCategory: draftState.category,
                       fieldErrors: draftState.fieldErrors.asMap(),
+                      plaintiffName: draftState.plaintiffName,
+                      defendantName: draftState.defendantName,
                       onCategoryChanged: (cat) => updateDraftOverview(
                         title: _titleController.text.trim(),
                         category: cat,
                         description: _contextController.text.trim(),
                       ),
+                      onNavigateToPlaintiff: () {
+                        updateDraftOverview(
+                          title: _titleController.text.trim(),
+                          category: draftState.category,
+                          description: _contextController.text.trim(),
+                        );
+                        goToDraftStep(step: DraftStep.plaintiff);
+                      },
+                      onNavigateToDefendant: () {
+                        updateDraftOverview(
+                          title: _titleController.text.trim(),
+                          category: draftState.category,
+                          description: _contextController.text.trim(),
+                        );
+                        goToDraftStep(step: DraftStep.defendant);
+                      },
                     ),
                   DraftStep.plaintiff => _PlaintiffStepView(
                       nameController: _plaintiffNameController,
@@ -242,14 +260,88 @@ class _OverviewStepView extends StatelessWidget {
     required this.contextController,
     required this.selectedCategory,
     required this.fieldErrors,
+    required this.plaintiffName,
+    required this.defendantName,
     required this.onCategoryChanged,
+    required this.onNavigateToPlaintiff,
+    required this.onNavigateToDefendant,
   });
 
   final TextEditingController titleController;
   final TextEditingController contextController;
   final CaseCategory selectedCategory;
   final Map<String, String> fieldErrors;
+  final String plaintiffName;
+  final String defendantName;
   final ValueChanged<CaseCategory> onCategoryChanged;
+  final VoidCallback onNavigateToPlaintiff;
+  final VoidCallback onNavigateToDefendant;
+
+  String _getCategoryEmoji(CaseCategory cat) {
+    return switch (cat) {
+      CaseCategory.food => '🍕',
+      CaseCategory.friendship => '📅',
+      CaseCategory.relationships => '❤️',
+      CaseCategory.work => '💼',
+      CaseCategory.random => '📺',
+      _ => '⚖️',
+    };
+  }
+
+  void _showCategoryPicker(BuildContext context) {
+    final colors = context.colors;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.surface1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40.0,
+                  height: 4.0,
+                  decoration: BoxDecoration(
+                    color: colors.hairlineStrong,
+                    borderRadius: BorderRadius.circular(2.0),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.m),
+                AppText(
+                  'Select Category',
+                  style: AppTextStyle.titleMedium,
+                  fontWeight: FontWeight.w800,
+                ),
+                const SizedBox(height: AppSpacing.s),
+                ...CaseCategory.values.map((cat) {
+                  final isSelected = cat == selectedCategory;
+                  return ListTile(
+                    leading: Text(_getCategoryEmoji(cat), style: const TextStyle(fontSize: 24.0)),
+                    title: AppText(
+                      cat.displayName,
+                      style: AppTextStyle.bodyMedium,
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                      color: isSelected ? colors.accent : colors.text,
+                    ),
+                    trailing: isSelected ? Icon(Icons.check_circle, color: colors.accent) : null,
+                    onTap: () {
+                      onCategoryChanged(cat);
+                      Navigator.of(ctx).pop();
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +351,31 @@ class _OverviewStepView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText(strings.wizardTitleLabel, style: AppTextStyle.label),
+        Center(
+          child: Column(
+            children: [
+              Container(
+                width: 58.0,
+                height: 58.0,
+                decoration: BoxDecoration(
+                  color: colors.accent.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.balance, size: 30.0, color: colors.accent),
+              ),
+              const SizedBox(height: AppSpacing.s),
+              AppText(
+                'Tell us about your case!',
+                style: AppTextStyle.titleMedium,
+                fontWeight: FontWeight.w800,
+              ),
+              const SizedBox(height: AppSpacing.base),
+            ],
+          ),
+        ),
+
+        // Case Title
+        AppText(strings.wizardTitleLabel, style: AppTextStyle.label, fontWeight: FontWeight.w700),
         const SizedBox(height: AppSpacing.s),
         TextField(
           controller: titleController,
@@ -268,32 +384,51 @@ class _OverviewStepView extends StatelessWidget {
             filled: true,
             fillColor: colors.surface1,
             errorText: fieldErrors['title'],
-            border: OutlineInputBorder(borderRadius: AppRadius.smAll),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: colors.hairline),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: colors.hairline),
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.base),
-        AppText(strings.wizardCategoryLabel, style: AppTextStyle.label),
+
+        // Category Dropdown Card
+        AppText(strings.wizardCategoryLabel, style: AppTextStyle.label, fontWeight: FontWeight.w700),
         const SizedBox(height: AppSpacing.s),
-        Wrap(
-          spacing: AppSpacing.s,
-          runSpacing: AppSpacing.xs,
-          children: CaseCategory.values.map((cat) {
-            final isSelected = cat == selectedCategory;
-            return ChoiceChip(
-              label: Text(cat.displayName),
-              selected: isSelected,
-              selectedColor: colors.gavelGold,
-              backgroundColor: colors.surface1,
-              labelStyle: TextStyle(
-                color: isSelected ? colors.inkBlack : colors.text,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-              ),
-              onSelected: (_) => onCategoryChanged(cat),
-            );
-          }).toList(),
+        InkWell(
+          onTap: () => _showCategoryPicker(context),
+          borderRadius: BorderRadius.circular(16.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: 14.0),
+            decoration: BoxDecoration(
+              color: colors.surface1,
+              borderRadius: BorderRadius.circular(16.0),
+              border: Border.all(color: colors.hairline),
+            ),
+            child: Row(
+              children: [
+                Text(_getCategoryEmoji(selectedCategory), style: const TextStyle(fontSize: 18.0)),
+                const SizedBox(width: AppSpacing.s),
+                Expanded(
+                  child: AppText(
+                    selectedCategory.displayName,
+                    style: AppTextStyle.bodyMedium,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Icon(Icons.keyboard_arrow_down, color: colors.text2),
+              ],
+            ),
+          ),
         ),
         const SizedBox(height: AppSpacing.base),
-        AppText(strings.wizardContextLabel, style: AppTextStyle.label),
+
+        // Description (Optional)
+        AppText('Description (Optional)', style: AppTextStyle.label, fontWeight: FontWeight.w700),
         const SizedBox(height: AppSpacing.s),
         TextField(
           controller: contextController,
@@ -302,9 +437,121 @@ class _OverviewStepView extends StatelessWidget {
             hintText: strings.wizardContextHint,
             filled: true,
             fillColor: colors.surface1,
-            border: OutlineInputBorder(borderRadius: AppRadius.smAll),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: colors.hairline),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: colors.hairline),
+            ),
           ),
         ),
+        const SizedBox(height: AppSpacing.l),
+
+        // The Parties Section matching Screen 3
+        AppText(
+          'The Parties',
+          style: AppTextStyle.label,
+          fontWeight: FontWeight.w800,
+        ),
+        const SizedBox(height: AppSpacing.s),
+
+        // Plaintiff Card
+        InkWell(
+          onTap: onNavigateToPlaintiff,
+          borderRadius: BorderRadius.circular(16.0),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.base),
+            decoration: BoxDecoration(
+              color: colors.surface1,
+              borderRadius: BorderRadius.circular(16.0),
+              border: Border.all(color: colors.hairline),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44.0,
+                  height: 44.0,
+                  decoration: BoxDecoration(
+                    color: colors.plaintiffRose,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person, color: Color(0xFFE05A65), size: 24.0),
+                ),
+                const SizedBox(width: AppSpacing.m),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        'Plaintiff',
+                        style: AppTextStyle.bodyMedium,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      const SizedBox(height: 2.0),
+                      AppText(
+                        plaintiffName.isNotEmpty ? plaintiffName : 'Name & Argument',
+                        style: AppTextStyle.caption,
+                        color: colors.text2,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: colors.text2),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s),
+
+        // Defendant Card
+        InkWell(
+          onTap: onNavigateToDefendant,
+          borderRadius: BorderRadius.circular(16.0),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.base),
+            decoration: BoxDecoration(
+              color: colors.surface1,
+              borderRadius: BorderRadius.circular(16.0),
+              border: Border.all(color: colors.hairline),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44.0,
+                  height: 44.0,
+                  decoration: BoxDecoration(
+                    color: colors.defendantPeriwinkle,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person, color: Color(0xFF4C6EF5), size: 24.0),
+                ),
+                const SizedBox(width: AppSpacing.m),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        'Defendant',
+                        style: AppTextStyle.bodyMedium,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      const SizedBox(height: 2.0),
+                      AppText(
+                        defendantName.isNotEmpty ? defendantName : 'Name & Argument',
+                        style: AppTextStyle.caption,
+                        color: colors.text2,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: colors.text2),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.l),
       ],
     );
   }
@@ -435,29 +682,35 @@ class _WizardBottomActionBar extends StatelessWidget {
         color: colors.surface1,
         border: Border(top: BorderSide(color: colors.hairline)),
       ),
-      child: Row(
-        children: [
-          if (step.index > 0) ...[
-            Expanded(
-              flex: 1,
-              child: AppButton(
-                label: strings.btnBack,
-                variant: AppButtonVariant.parchmentSecondary,
-                onPressed: isSubmitting ? null : onBack,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.m),
-          ],
-          Expanded(
-            flex: 2,
-            child: AppButton(
-              label: isLastStep ? strings.btnSubmit : strings.btnNext,
-              isLoading: isSubmitting,
+      child: step == DraftStep.overview
+          ? AppButton(
+              label: strings.btnNext,
+              isFullWidth: true,
+              variant: AppButtonVariant.royalIndigo,
               onPressed: onNext,
+            )
+          : Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: AppButton(
+                    label: strings.btnBack,
+                    variant: AppButtonVariant.parchmentSecondary,
+                    onPressed: isSubmitting ? null : onBack,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.m),
+                Expanded(
+                  flex: 2,
+                  child: AppButton(
+                    label: isLastStep ? strings.btnSubmit : strings.btnNext,
+                    isLoading: isSubmitting,
+                    variant: AppButtonVariant.royalIndigo,
+                    onPressed: onNext,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

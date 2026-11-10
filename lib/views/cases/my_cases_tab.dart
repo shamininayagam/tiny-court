@@ -40,6 +40,10 @@ class MyCasesTabState extends AppConsumerState<MyCasesTab>
     filterHistoryByCategory(category: category);
   }
 
+  void _onStatusSelected(CaseStatus? status) {
+    filterHistoryByStatus(status: status);
+  }
+
   void _onCaseTap(Case courtCase) {
     CaseDetailsRoute(id: courtCase.id).push(context);
   }
@@ -92,8 +96,9 @@ class MyCasesTabState extends AppConsumerState<MyCasesTab>
         title: AppText(
           strings.historyTitle,
           style: AppTextStyle.titleMedium,
+          fontWeight: FontWeight.w700,
         ),
-        backgroundColor: colors.surface1,
+        backgroundColor: colors.bg,
         elevation: 0,
       ),
       body: SafeArea(
@@ -103,10 +108,17 @@ class MyCasesTabState extends AppConsumerState<MyCasesTab>
               controller: _searchController,
               onChanged: _onSearchChanged,
             ),
+            const SizedBox(height: AppSpacing.s),
+            _StatusFilterPillBar(
+              selectedStatus: state.selectedStatus,
+              onSelected: _onStatusSelected,
+            ),
+            const SizedBox(height: AppSpacing.s),
             _CategoryFilterBar(
               selectedCategory: state.selectedCategory,
               onSelected: _onCategorySelected,
             ),
+            const SizedBox(height: AppSpacing.s),
             Expanded(
               child: state.isLoading
                   ? Center(
@@ -153,9 +165,9 @@ class _HistorySearchField extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.base,
-        vertical: AppSpacing.s,
+        vertical: AppSpacing.xs,
       ),
-      color: colors.surface1,
+      color: colors.bg,
       child: TextField(
         controller: controller,
         onChanged: onChanged,
@@ -172,14 +184,113 @@ class _HistorySearchField extends StatelessWidget {
                 )
               : null,
           filled: true,
-          fillColor: colors.surface2,
+          fillColor: colors.surface1,
           border: OutlineInputBorder(
-            borderRadius: AppRadius.smAll,
-            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(16.0),
+            borderSide: BorderSide(color: colors.hairline),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            borderSide: BorderSide(color: colors.hairline),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.base,
             vertical: AppSpacing.s,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusFilterPillBar extends StatelessWidget {
+  const _StatusFilterPillBar({
+    required this.selectedStatus,
+    required this.onSelected,
+  });
+
+  final CaseStatus? selectedStatus;
+  final ValueChanged<CaseStatus?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+      padding: const EdgeInsets.all(4.0),
+      decoration: BoxDecoration(
+        color: colors.surface2,
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatusPillItem(
+              label: 'All',
+              isSelected: selectedStatus == null,
+              onTap: () => onSelected(null),
+            ),
+          ),
+          Expanded(
+            child: _StatusPillItem(
+              label: 'Submitted',
+              isSelected: selectedStatus == CaseStatus.submitted,
+              onTap: () => onSelected(CaseStatus.submitted),
+            ),
+          ),
+          Expanded(
+            child: _StatusPillItem(
+              label: 'Decided',
+              isSelected: selectedStatus == CaseStatus.decided,
+              onTap: () => onSelected(CaseStatus.decided),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusPillItem extends StatelessWidget {
+  const _StatusPillItem({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.surface1 : Colors.transparent,
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: colors.text.withValues(alpha: 0.05),
+                    blurRadius: 4.0,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: AppText(
+            label,
+            style: AppTextStyle.caption,
+            color: isSelected ? colors.text : colors.text2,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
           ),
         ),
       ),
@@ -201,9 +312,8 @@ class _CategoryFilterBar extends StatelessWidget {
     final colors = context.colors;
     final strings = context.strings;
 
-    return Container(
-      height: 48,
-      color: colors.surface1,
+    return SizedBox(
+      height: 38,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
@@ -215,12 +325,17 @@ class _CategoryFilterBar extends StatelessWidget {
                 strings.historyFilterAll,
                 style: AppTextStyle.caption,
                 color: selectedCategory == null
-                    ? colors.bg
+                    ? colors.inkBlack
                     : colors.text,
+                fontWeight: selectedCategory == null ? FontWeight.w800 : FontWeight.w600,
               ),
               selected: selectedCategory == null,
-              selectedColor: colors.gavelGold,
-              backgroundColor: colors.surface2,
+              selectedColor: colors.accent,
+              backgroundColor: colors.surface1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                side: BorderSide(color: colors.hairline),
+              ),
               onSelected: (_) => onSelected(null),
             ),
           ),
@@ -230,13 +345,18 @@ class _CategoryFilterBar extends StatelessWidget {
               padding: const EdgeInsets.only(right: AppSpacing.s),
               child: FilterChip(
                 label: AppText(
-                  cat.name.toUpperCase(),
+                  cat.displayName,
                   style: AppTextStyle.caption,
-                  color: isSelected ? colors.bg : colors.text,
+                  color: isSelected ? colors.inkBlack : colors.text,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 ),
                 selected: isSelected,
-                selectedColor: colors.gavelGold,
-                backgroundColor: colors.surface2,
+                selectedColor: colors.accent,
+                backgroundColor: colors.surface1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  side: BorderSide(color: colors.hairline),
+                ),
                 onSelected: (_) => onSelected(isSelected ? null : cat),
               ),
             );
@@ -258,12 +378,13 @@ class _CaseDocketListItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  Color _getStatusColor(BuildContext context, CaseStatus status) {
-    final colors = context.colors;
-    return switch (status) {
-      CaseStatus.decided => colors.ok,
-      CaseStatus.submitted => colors.accent,
-      _ => colors.text2,
+  IconData _getCategoryIcon(CaseCategory category) {
+    return switch (category) {
+      CaseCategory.food => Icons.local_pizza_outlined,
+      CaseCategory.friendship => Icons.event_available_outlined,
+      CaseCategory.relationships => Icons.tv_outlined,
+      CaseCategory.work => Icons.coffee_outlined,
+      _ => Icons.balance,
     };
   }
 
@@ -273,54 +394,75 @@ class _CaseDocketListItem extends StatelessWidget {
 
     return ParchmentCard(
       onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: AppSpacing.p12,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              LegalBadge(
-                label: courtCase.caseNumber,
-                color: colors.info,
-              ),
-              Row(
-                children: [
-                  LegalBadge(
-                    label: courtCase.status.name.toUpperCase(),
-                    color: _getStatusColor(context, courtCase.status),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_outline,
-                      size: 20,
-                      color: colors.text2,
+          Container(
+            width: 44.0,
+            height: 44.0,
+            decoration: BoxDecoration(
+              color: colors.surface2,
+              borderRadius: BorderRadius.circular(14.0),
+            ),
+            child: Icon(
+              _getCategoryIcon(courtCase.category),
+              size: 22.0,
+              color: colors.accent,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  courtCase.title,
+                  style: AppTextStyle.bodyMedium,
+                  color: colors.text,
+                  fontWeight: FontWeight.w700,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2.0),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                      decoration: BoxDecoration(
+                        color: courtCase.status == CaseStatus.decided
+                            ? colors.mintGreen
+                            : colors.plaintiffRose,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: AppText(
+                        courtCase.status == CaseStatus.decided
+                            ? 'Not Guilty'
+                            : 'Submitted',
+                        style: AppTextStyle.caption,
+                        color: courtCase.status == CaseStatus.decided
+                            ? colors.mintGreenDark
+                            : colors.plaintiffRed,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    onPressed: onDelete,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: AppSpacing.s),
+                    AppText(
+                      courtCase.caseNumber,
+                      style: AppTextStyle.caption,
+                      color: colors.text3,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.s),
-          AppText(
-            courtCase.title,
-            style: AppTextStyle.titleMedium,
-            color: colors.text,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              Icon(Icons.person_outline, size: 14, color: colors.text2),
-              const SizedBox(width: AppSpacing.xs),
-              AppText(
-                '${courtCase.plaintiffName} v. ${courtCase.defendantName}',
-                style: AppTextStyle.caption,
-                color: colors.text2,
-              ),
-            ],
+          IconButton(
+            icon: Icon(
+              Icons.delete_outline,
+              size: 20,
+              color: colors.text3,
+            ),
+            onPressed: onDelete,
           ),
         ],
       ),
@@ -352,6 +494,7 @@ class _EmptyCasesView extends StatelessWidget {
               strings.historyEmptyTitle,
               style: AppTextStyle.titleMedium,
               color: colors.text,
+              fontWeight: FontWeight.w700,
             ),
             const SizedBox(height: AppSpacing.s),
             AppText(

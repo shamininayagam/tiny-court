@@ -1,8 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../data/fixtures/suggested_cases_fixture.dart';
 import '../../model/case.dart';
+import '../../model/enums/case_category.dart';
 import '../../model/suggested_case.dart';
-import '../../provider/app_providers.dart';
 import '../../ui.dart';
 import '../navigation/app_routes.dart';
 
@@ -12,169 +11,259 @@ class HomeTab extends AppConsumerWidget {
 
   @override
   Widget buildApp(BuildContext context, AppRef ref) {
+    final colors = context.colors;
     final strings = context.strings;
-    final suggestedAsync = ref.watch(suggestedCasesProvider);
     final historyState = ref.caseHistoryState;
 
     return Scaffold(
-      backgroundColor: context.colors.bg,
+      backgroundColor: colors.bg,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: AppSpacing.screenGutter,
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: AppSpacing.s),
-                  Center(
-                    child: JudgeMascotView(
-                      expression: JudgeExpression.laughing,
-                      size: 96.0,
-                      dialogueBubble: strings.homeWelcomeSubtitle,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Top Hero: Red Theatrical Draped Curtain Banner with Judge Barnaby & Speech Bubble
+              _HomeCourtroomHeroBanner(colors: colors),
+              const SizedBox(height: AppSpacing.base),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Primary CTA: Warm Caramel "Start a New Case"
+                    AppButton(
+                      label: strings.btnQuickStart,
+                      icon: const Icon(Icons.gavel, size: 20.0),
+                      isFullWidth: true,
+                      variant: AppButtonVariant.primaryGold,
+                      onPressed: () {
+                        const CreateCaseRoute().push(context);
+                      },
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-                  AppText(
-                    strings.homeWelcomeTitle,
-                    style: AppTextStyle.headlineMedium,
-                    align: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-                  AppButton(
-                    label: strings.btnQuickStart,
-                    icon: const Icon(Icons.add, size: 20.0),
-                    isFullWidth: true,
-                    onPressed: () {
-                      const CreateCaseRoute().push(context);
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.l),
-                  AppText(
-                    strings.homeTemplatesHeader,
-                    style: AppTextStyle.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.m),
-                ]),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: suggestedAsync.when(
-                data: (templates) => _SuggestedCasesCarousel(templates: templates),
-                loading: () => const Center(
-                  child: Padding(
-                    padding: AppSpacing.p24,
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                error: (e, _) => Center(
-                  child: AppText(
-                    strings.errorGeneral,
-                    style: AppTextStyle.bodyMedium,
-                    color: context.colors.danger,
-                  ),
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: AppSpacing.screenGutter,
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: AppSpacing.l),
-                  AppText(
-                    strings.homeRecentCasesHeader,
-                    style: AppTextStyle.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.m),
-                  if (historyState.allCases.isEmpty)
-                    const _EmptyRecentCasesView()
-                  else
-                    ...historyState.allCases.take(5).map(
-                          (c) => _RecentCaseDocketItem(courtCase: c),
+                    const SizedBox(height: AppSpacing.l),
+
+                    // Suggested Cases (Vertical List matching mockup Screen 2)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText(
+                          strings.homeTemplatesHeader,
+                          style: AppTextStyle.titleMedium,
+                          fontWeight: FontWeight.w800,
                         ),
-                  const SizedBox(height: AppSpacing.xl),
-                ]),
+                        AppText(
+                          'See all ›',
+                          style: AppTextStyle.caption,
+                          color: colors.text2,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.s),
+                    _VerticalSuggestedCasesList(
+                      templates: SuggestedCasesFixture.catalog.take(3).toList(),
+                    ),
+                    const SizedBox(height: AppSpacing.l),
+
+                    // My Cases (Matching mockup Screen 2)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText(
+                          strings.tabCases,
+                          style: AppTextStyle.titleMedium,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        AppText(
+                          'See all ›',
+                          style: AppTextStyle.caption,
+                          color: colors.text2,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.s),
+                    if (historyState.allCases.isEmpty)
+                      const _EmptyRecentCasesView()
+                    else
+                      ...historyState.allCases.take(3).map(
+                            (c) => _RecentCaseDocketItem(courtCase: c),
+                          ),
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _SuggestedCasesCarousel extends StatelessWidget {
-  const _SuggestedCasesCarousel({required this.templates});
+class _HomeCourtroomHeroBanner extends StatelessWidget {
+  const _HomeCourtroomHeroBanner({required this.colors});
 
-  final List<SuggestedCase> templates;
+  final AppColors colors;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 180.0,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-        scrollDirection: Axis.horizontal,
-        itemCount: templates.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.m),
-        itemBuilder: (context, index) {
-          final template = templates[index];
-          return _SuggestedCaseCard(template: template);
-        },
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF6A1A24), // Rich courtroom curtain red
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32.0),
+          bottomRight: Radius.circular(32.0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 16.0,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Glowing Golden Scales at the very top
+          Icon(
+            Icons.balance,
+            size: 32.0,
+            color: colors.bookmarkYellow,
+          ),
+          const SizedBox(height: 6.0),
+
+          // Chibi Judge Barnaby
+          const JudgeMascotView(
+            expression: JudgeExpression.laughing,
+            size: 96.0,
+          ),
+          const SizedBox(height: 12.0),
+
+          // Speech Bubble: "Order! Order! / Welcome to Tiny Court!"
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 10.0,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppText(
+                  'Order! Order!',
+                  style: AppTextStyle.titleMedium,
+                  color: colors.inkBlack,
+                  fontWeight: FontWeight.w900,
+                  align: TextAlign.center,
+                ),
+                AppText(
+                  'Welcome to Tiny Court!',
+                  style: AppTextStyle.caption,
+                  color: colors.text2,
+                  fontWeight: FontWeight.w600,
+                  align: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _SuggestedCaseCard extends StatelessWidget {
-  const _SuggestedCaseCard({required this.template});
+class _VerticalSuggestedCasesList extends StatelessWidget {
+  const _VerticalSuggestedCasesList({required this.templates});
 
-  final SuggestedCase template;
+  final List<SuggestedCase> templates;
+
+  IconData _getCategoryIcon(CaseCategory category) {
+    return switch (category) {
+      CaseCategory.food => Icons.local_pizza_outlined,
+      CaseCategory.friendship => Icons.event_available_outlined,
+      CaseCategory.relationships => Icons.tv_outlined,
+      CaseCategory.work => Icons.coffee_outlined,
+      _ => Icons.lightbulb_outline,
+    };
+  }
+
+  Color _getCategoryBgColor(CaseCategory category) {
+    return switch (category) {
+      CaseCategory.food => const Color(0xFFFFF3E0),
+      CaseCategory.friendship => const Color(0xFFF3E5F5),
+      CaseCategory.relationships => const Color(0xFFE1F5FE),
+      CaseCategory.work => const Color(0xFFEFEBE9),
+      _ => const Color(0xFFFFF8E1),
+    };
+  }
+
+  Color _getCategoryIconColor(CaseCategory category) {
+    return switch (category) {
+      CaseCategory.food => const Color(0xFFE65100),
+      CaseCategory.friendship => const Color(0xFF8E24AA),
+      CaseCategory.relationships => const Color(0xFF0288D1),
+      CaseCategory.work => const Color(0xFF6D4C41),
+      _ => const Color(0xFFF57F17),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return SizedBox(
-      width: 260.0,
-      child: ParchmentCard(
-        onTap: () {
-          CreateCaseRoute(templateId: template.id).push(context);
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      children: templates.map((template) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppSpacing.s),
+          child: ParchmentCard(
+            elevation: 1.0,
+            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+            onTap: () {
+              CreateCaseRoute(templateId: template.id).push(context);
+            },
+            child: Row(
               children: [
-                LegalBadge(
-                  label: template.category.displayName,
-                  icon: Icons.label_outline,
+                Container(
+                  width: 44.0,
+                  height: 44.0,
+                  decoration: BoxDecoration(
+                    color: _getCategoryBgColor(template.category),
+                    borderRadius: BorderRadius.circular(14.0),
+                  ),
+                  child: Icon(
+                    _getCategoryIcon(template.category),
+                    size: 24.0,
+                    color: _getCategoryIconColor(template.category),
+                  ),
                 ),
-                Icon(Icons.chevron_right, size: 18.0, color: colors.text3),
+                const SizedBox(width: AppSpacing.m),
+                Expanded(
+                  child: AppText(
+                    template.title,
+                    style: AppTextStyle.bodyMedium,
+                    color: colors.text,
+                    fontWeight: FontWeight.w700,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(Icons.chevron_right, size: 20.0, color: colors.text3),
               ],
             ),
-            const SizedBox(height: AppSpacing.s),
-            AppText(
-              template.title,
-              style: AppTextStyle.titleMedium,
-              color: colors.inkBlack,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              fontWeight: FontWeight.w700,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Expanded(
-              child: AppText(
-                template.description,
-                style: AppTextStyle.caption,
-                color: colors.inkBlack.withValues(alpha: 0.75),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
 }
@@ -192,7 +281,7 @@ class _RecentCaseDocketItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.s),
       child: ParchmentCard(
         elevation: 1.0,
-        padding: AppSpacing.p12,
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
         onTap: () {
           if (courtCase.status.name == 'decided') {
             VerdictDetailsRoute(id: courtCase.id).push(context);
@@ -203,13 +292,17 @@ class _RecentCaseDocketItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 40.0,
-              height: 40.0,
+              width: 44.0,
+              height: 44.0,
               decoration: BoxDecoration(
-                color: colors.surface2,
-                borderRadius: AppRadius.smAll,
+                color: colors.accent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14.0),
               ),
-              child: Icon(Icons.gavel, size: 20.0, color: colors.gavelGold),
+              child: Icon(
+                Icons.balance,
+                size: 22.0,
+                color: colors.accent,
+              ),
             ),
             const SizedBox(width: AppSpacing.m),
             Expanded(
@@ -218,8 +311,8 @@ class _RecentCaseDocketItem extends StatelessWidget {
                 children: [
                   AppText(
                     courtCase.title,
-                    style: AppTextStyle.titleMedium,
-                    color: colors.inkBlack,
+                    style: AppTextStyle.bodyMedium,
+                    color: colors.text,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.w700,
@@ -228,16 +321,31 @@ class _RecentCaseDocketItem extends StatelessWidget {
                   AppText(
                     '${courtCase.plaintiffName} vs ${courtCase.defendantName}',
                     style: AppTextStyle.caption,
-                    color: colors.inkBlack.withValues(alpha: 0.7),
+                    color: colors.text2,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            LegalBadge(
-              label: courtCase.status.name.toUpperCase(),
-              color: courtCase.status.name == 'decided' ? colors.ok : colors.accent,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+              decoration: BoxDecoration(
+                color: courtCase.status.name == 'decided'
+                    ? colors.mintGreen
+                    : colors.surface2,
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: AppText(
+                courtCase.status.name == 'decided'
+                    ? 'Verdict Ready'
+                    : courtCase.status.name.toUpperCase(),
+                style: AppTextStyle.caption,
+                color: courtCase.status.name == 'decided'
+                    ? colors.mintGreenDark
+                    : colors.text2,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -258,7 +366,7 @@ class _EmptyRecentCasesView extends StatelessWidget {
       padding: AppSpacing.p24,
       decoration: BoxDecoration(
         color: colors.surface1,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: BorderRadius.circular(20.0),
         border: Border.all(color: colors.hairline),
       ),
       child: Center(

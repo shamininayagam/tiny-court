@@ -6,7 +6,7 @@ import '../../provider/app_providers.dart';
 import '../../ui.dart';
 import '../navigation/app_routes.dart';
 
-/// Fullscreen Verdict decree, comedic punishments, and share sheet.
+/// Fullscreen Verdict decree, comedic punishments, celebratory confetti, and share sheet.
 class VerdictDetailsScreen extends AppConsumerStatefulWidget {
   const VerdictDetailsScreen({super.key, required this.caseId});
 
@@ -111,21 +111,23 @@ ${strings.verdictShareWatermark}
     final strings = context.strings;
 
     return Scaffold(
-      backgroundColor: colors.bg,
+      backgroundColor: const Color(0xFF1E1424), // Celebratory dark courtroom stage
       appBar: AppBar(
         title: AppText(
           strings.verdictJudgeRulingTitle,
           style: AppTextStyle.titleMedium,
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
         ),
-        backgroundColor: colors.surface1,
+        backgroundColor: const Color(0xFF281C30),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, color: Colors.white70),
           onPressed: _onReturnHome,
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share_outlined),
+            icon: const Icon(Icons.share_outlined, color: Colors.white),
             onPressed: _onShare,
           ),
         ],
@@ -176,6 +178,7 @@ class _VerdictErrorView extends StatelessWidget {
             AppText(
               message,
               style: AppTextStyle.bodyMedium,
+              color: Colors.white,
               align: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.l),
@@ -211,23 +214,29 @@ class _VerdictContentView extends StatelessWidget {
           child: SingleChildScrollView(
             padding: AppSpacing.screenGutter,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: AppSpacing.s),
-                Center(
-                  child: VerdictStamp(verdictType: verdict.verdictType),
+                // Confetti & Sunglasses Judge Barnaby
+                const JudgeMascotView(
+                  expression: JudgeExpression.celebratingWithGlasses,
+                  size: 110.0,
                 ),
-                const SizedBox(height: AppSpacing.l),
-                _DecreeHeaderCard(courtCase: courtCase),
                 const SizedBox(height: AppSpacing.base),
-                _DecreeStatementCard(statement: verdict.judgeStatement),
+
+                // Celebratory Verdict Card
+                _CelebratoryVerdictCard(
+                  courtCase: courtCase,
+                  verdict: verdict,
+                ),
                 const SizedBox(height: AppSpacing.base),
+
+                // Comedic Punishment Card
                 _DecreePunishmentCard(punishment: verdict.punishment),
                 const SizedBox(height: AppSpacing.base),
-                _DecreeRationaleCard(
-                  explanation: verdict.explanation,
-                  closingRemark: verdict.closingRemark,
-                ),
+
+                // Judicial Statement & Rationale
+                _DecreeStatementCard(statement: verdict.judgeStatement),
                 const SizedBox(height: AppSpacing.xl),
               ],
             ),
@@ -242,38 +251,77 @@ class _VerdictContentView extends StatelessWidget {
   }
 }
 
-class _DecreeHeaderCard extends StatelessWidget {
-  const _DecreeHeaderCard({required this.courtCase});
+class _CelebratoryVerdictCard extends StatelessWidget {
+  const _CelebratoryVerdictCard({
+    required this.courtCase,
+    required this.verdict,
+  });
 
   final Case courtCase;
+  final Verdict verdict;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return ParchmentCard(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.base),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 16.0,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              LegalBadge(
-                label: courtCase.caseNumber,
-                color: colors.info,
-              ),
-              LegalBadge(
-                label: courtCase.category.name.toUpperCase(),
-                color: colors.accent,
-              ),
-            ],
+          // Golden Ribbon Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 6.0),
+            decoration: BoxDecoration(
+              color: colors.bookmarkYellow,
+              borderRadius: BorderRadius.circular(16.0),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.bookmarkYellow.withValues(alpha: 0.35),
+                  blurRadius: 6.0,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: AppText(
+              'FINAL VERDICT',
+              style: AppTextStyle.caption,
+              color: colors.inkBlack,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: AppSpacing.m),
+
           AppText(
             courtCase.title,
-            style: AppTextStyle.headlineMedium,
+            style: AppTextStyle.titleMedium,
             color: colors.text,
+            fontWeight: FontWeight.w800,
+            align: TextAlign.center,
           ),
+          const SizedBox(height: AppSpacing.xs),
+          AppText(
+            'The Defendant is',
+            style: AppTextStyle.bodyMedium,
+            color: colors.text2,
+            fontWeight: FontWeight.w600,
+          ),
+          const SizedBox(height: AppSpacing.m),
+
+          // Animated Rubber Stamp Badge
+          VerdictStamp(verdictType: verdict.verdictType),
+          const SizedBox(height: AppSpacing.s),
         ],
       ),
     );
@@ -302,14 +350,16 @@ class _DecreeStatementCard extends StatelessWidget {
                 strings.verdictJudgeRulingTitle,
                 style: AppTextStyle.titleMedium,
                 color: colors.gavelGold,
+                fontWeight: FontWeight.w700,
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.m),
           AppText(
-            statement,
+            '"$statement"',
             style: AppTextStyle.bodyLarge,
             color: colors.text,
+            italic: true,
           ),
         ],
       ),
@@ -328,11 +378,12 @@ class _DecreePunishmentCard extends StatelessWidget {
     final strings = context.strings;
 
     return Container(
+      width: double.infinity,
       padding: AppSpacing.screenGutter,
       decoration: BoxDecoration(
-        color: colors.surface2,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: colors.hairline),
+        color: const Color(0xFFFFF0F0),
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(color: colors.danger.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,6 +400,7 @@ class _DecreePunishmentCard extends StatelessWidget {
                 strings.verdictPunishmentTitle,
                 style: AppTextStyle.titleMedium,
                 color: colors.danger,
+                fontWeight: FontWeight.w800,
               ),
             ],
           ),
@@ -357,53 +409,7 @@ class _DecreePunishmentCard extends StatelessWidget {
             punishment,
             style: AppTextStyle.bodyMedium,
             color: colors.text,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DecreeRationaleCard extends StatelessWidget {
-  const _DecreeRationaleCard({
-    required this.explanation,
-    required this.closingRemark,
-  });
-
-  final String explanation;
-  final String closingRemark;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final strings = context.strings;
-
-    return ParchmentCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppText(
-            strings.verdictExplanationTitle,
-            style: AppTextStyle.label,
-            color: colors.text2,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          AppText(
-            explanation,
-            style: AppTextStyle.caption,
-            color: colors.text,
-          ),
-          const SizedBox(height: AppSpacing.base),
-          AppText(
-            strings.verdictClosingRemarkTitle,
-            style: AppTextStyle.label,
-            color: colors.text2,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          AppText(
-            closingRemark,
-            style: AppTextStyle.caption,
-            color: colors.text,
+            fontWeight: FontWeight.w600,
           ),
         ],
       ),
@@ -422,14 +428,12 @@ class _VerdictBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final strings = context.strings;
 
     return Container(
       padding: AppSpacing.screenGutter,
-      decoration: BoxDecoration(
-        color: colors.surface1,
-        border: Border(top: BorderSide(color: colors.hairline)),
+      decoration: const BoxDecoration(
+        color: Color(0xFF281C30),
       ),
       child: Row(
         children: [
@@ -445,7 +449,8 @@ class _VerdictBottomBar extends StatelessWidget {
           Expanded(
             flex: 2,
             child: AppButton(
-              label: strings.verdictReturnHome,
+              label: 'Woohoo!',
+              variant: AppButtonVariant.primaryGold,
               onPressed: onReturnHome,
             ),
           ),

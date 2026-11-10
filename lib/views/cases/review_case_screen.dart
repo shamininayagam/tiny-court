@@ -1,4 +1,5 @@
 import '../../model/case.dart';
+import '../../model/enums/case_category.dart';
 import '../../provider/app_providers.dart';
 import '../../ui.dart';
 import '../navigation/app_routes.dart';
@@ -73,8 +74,9 @@ class ReviewCaseScreenState extends AppConsumerState<ReviewCaseScreen> {
         title: AppText(
           strings.reviewDocketTitle,
           style: AppTextStyle.titleMedium,
+          fontWeight: FontWeight.w700,
         ),
-        backgroundColor: colors.surface1,
+        backgroundColor: colors.bg,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -163,14 +165,14 @@ class _ReviewContentView extends StatelessWidget {
               children: [
                 _DocketHeaderCard(courtCase: courtCase),
                 const SizedBox(height: AppSpacing.base),
-                const _LegalDisclaimerCard(),
-                const SizedBox(height: AppSpacing.l),
                 ArgumentScrollCard(
                   plaintiffName: courtCase.plaintiffName,
                   plaintiffArgument: courtCase.plaintiffArgument,
                   defendantName: courtCase.defendantName,
                   defendantArgument: courtCase.defendantArgument,
                 ),
+                const SizedBox(height: AppSpacing.base),
+                const _LegalDisclaimerCard(),
                 const SizedBox(height: AppSpacing.xl),
               ],
             ),
@@ -190,40 +192,75 @@ class _DocketHeaderCard extends StatelessWidget {
 
   final Case courtCase;
 
+  IconData _getCategoryIcon(CaseCategory category) {
+    return switch (category) {
+      CaseCategory.food => Icons.local_pizza,
+      CaseCategory.friendship => Icons.event_available,
+      CaseCategory.relationships => Icons.tv,
+      CaseCategory.work => Icons.coffee,
+      _ => Icons.lightbulb,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
     return ParchmentCard(
+      bookmarkRibbonLabel: 'Case ${courtCase.caseNumber}',
+      padding: const EdgeInsets.fromLTRB(AppSpacing.base, 28.0, AppSpacing.base, AppSpacing.base),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              LegalBadge(
-                label: courtCase.caseNumber,
-                color: colors.info,
-              ),
-              LegalBadge(
-                label: courtCase.category.name.toUpperCase(),
-                color: colors.accent,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.m),
+          const SizedBox(height: AppSpacing.s),
           AppText(
             courtCase.title,
             style: AppTextStyle.headlineMedium,
             color: colors.text,
+            align: TextAlign.center,
+            fontWeight: FontWeight.w800,
+          ),
+          const SizedBox(height: AppSpacing.base),
+          // Large dispute illustration / category emblem
+          Container(
+            width: 72.0,
+            height: 72.0,
+            decoration: BoxDecoration(
+              color: colors.accent.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _getCategoryIcon(courtCase.category),
+              size: 40.0,
+              color: colors.accent,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.base),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppText(
+                'Category: ',
+                style: AppTextStyle.caption,
+                color: colors.text2,
+                fontWeight: FontWeight.w600,
+              ),
+              AppText(
+                courtCase.category.displayName,
+                style: AppTextStyle.caption,
+                color: colors.text,
+                fontWeight: FontWeight.w800,
+              ),
+            ],
           ),
           if (courtCase.description != null &&
               courtCase.description!.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.s),
+            const SizedBox(height: AppSpacing.xs),
             AppText(
               courtCase.description!,
               style: AppTextStyle.caption,
               color: colors.text2,
+              align: TextAlign.center,
             ),
           ],
         ],
@@ -244,7 +281,7 @@ class _LegalDisclaimerCard extends StatelessWidget {
       padding: AppSpacing.p12,
       decoration: BoxDecoration(
         color: colors.surface2,
-        borderRadius: AppRadius.smAll,
+        borderRadius: BorderRadius.circular(16.0),
         border: Border.all(color: colors.hairline),
       ),
       child: Row(
@@ -289,22 +326,25 @@ class _ReviewBottomBar extends StatelessWidget {
         color: colors.surface1,
         border: Border(top: BorderSide(color: colors.hairline)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            flex: 1,
-            child: AppButton(
-              label: strings.btnBack,
-              variant: AppButtonVariant.parchmentSecondary,
-              onPressed: onBack,
-            ),
+          AppButton(
+            label: strings.btnStartTrial,
+            isFullWidth: true,
+            variant: AppButtonVariant.royalIndigo,
+            onPressed: onEnterCourtroom,
           ),
-          const SizedBox(width: AppSpacing.m),
-          Expanded(
-            flex: 2,
-            child: AppButton(
-              label: strings.btnStartTrial,
-              onPressed: onEnterCourtroom,
+          const SizedBox(height: AppSpacing.s),
+          InkWell(
+            onTap: onBack,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: AppText(
+                'Edit',
+                style: AppTextStyle.label,
+                color: colors.text2,
+              ),
             ),
           ),
         ],
